@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebGL Fluid Simulation With Your Text</title>
-  <link rel="stylesheet" href="./style.css">
+  <title>WebGL Fluid Simulation</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <canvas></canvas>
@@ -32,7 +32,7 @@
     }
   </script>
 
-  <!-- Fragment Shader for Advection -->
+  <!-- Advection Fragment Shader -->
   <script type="x-shader/x-fragment" id="fragShaderAdvection">
     precision highp float;
     precision highp sampler2D;
@@ -66,21 +66,75 @@
     }
   </script>
 
-  <!-- Fragment Shader for Output -->
+  <!-- Additional Fragment Shaders -->
+  <!-- Divergence Fragment Shader -->
+  <script type="x-shader/x-fragment" id="fragShaderDivergence">
+    precision highp float;
+
+    varying vec2 vUv;
+    uniform sampler2D u_velocity_texture;
+    uniform vec2 u_texel;
+
+    void main () {
+        float L = texture2D(u_velocity_texture, vUv - vec2(u_texel.x, 0)).x;
+        float R = texture2D(u_velocity_texture, vUv + vec2(u_texel.x, 0)).x;
+        float T = texture2D(u_velocity_texture, vUv + vec2(0, u_texel.y)).y;
+        float B = texture2D(u_velocity_texture, vUv - vec2(0, u_texel.y)).y;
+        gl_FragColor = vec4(0.5 * (R - L + T - B), 0, 0, 1);
+    }
+  </script>
+
+  <!-- Pressure Fragment Shader -->
+  <script type="x-shader/x-fragment" id="fragShaderPressure">
+    precision highp float;
+
+    varying vec2 vUv;
+    uniform sampler2D u_pressure_texture;
+    uniform sampler2D u_divergence_texture;
+    uniform vec2 u_texel;
+
+    void main () {
+        float L = texture2D(u_pressure_texture, vUv - vec2(u_texel.x, 0)).x;
+        float R = texture2D(u_pressure_texture, vUv + vec2(u_texel.x, 0)).x;
+        float T = texture2D(u_pressure_texture, vUv + vec2(0, u_texel.y)).x;
+        float B = texture2D(u_pressure_texture, vUv - vec2(0, u_texel.y)).x;
+        float divergence = texture2D(u_divergence_texture, vUv).x;
+        gl_FragColor = vec4((L + R + T + B - divergence) * 0.25, 0, 0, 1);
+    }
+  </script>
+
+  <!-- Gradient Subtract Fragment Shader -->
+  <script type="x-shader/x-fragment" id="fragShaderGradientSubtract">
+    precision highp float;
+
+    varying vec2 vUv;
+    uniform sampler2D u_pressure_texture;
+    uniform sampler2D u_velocity_texture;
+    uniform vec2 u_texel;
+
+    void main () {
+        float L = texture2D(u_pressure_texture, vUv - vec2(u_texel.x, 0)).x;
+        float R = texture2D(u_pressure_texture, vUv + vec2(u_texel.x, 0)).x;
+        float T = texture2D(u_pressure_texture, vUv + vec2(0, u_texel.y)).x;
+        float B = texture2D(u_pressure_texture, vUv - vec2(0, u_texel.y)).x;
+        vec2 velocity = texture2D(u_velocity_texture, vUv).xy;
+        gl_FragColor = vec4(velocity - 0.5 * vec2(R - L, T - B), 0, 1);
+    }
+  </script>
+
+  <!-- Output Fragment Shader -->
   <script type="x-shader/x-fragment" id="fragShaderOutputShader">
     precision highp float;
-    precision highp sampler2D;
 
     varying vec2 vUv;
     uniform sampler2D u_output_texture;
 
     void main () {
-        vec3 C = texture2D(u_output_texture, vUv).rgb;
-        gl_FragColor = vec4(C, 1.);
+        gl_FragColor = texture2D(u_output_texture, vUv);
     }
   </script>
 
-  <!-- Main Script -->
-  <script type="module" src="./script.js"></script>
+  <!-- Main JavaScript -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>
