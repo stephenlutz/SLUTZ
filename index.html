@@ -7,10 +7,10 @@
     
     <!-- CSS Goes Here -->
     <style>
-/* Explanation in JS tab */
+      /* Explanation in JS tab */
 
 /* Cool font from Google Fonts! */
-@import url('https://fonts.googleapis.com/css2?family=Rubik+Iso&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Raleway:900&display=swap');
 
 body {
 	margin: 0px;
@@ -35,11 +35,9 @@ body {
 	width: 100%;
 	display: inline-block;
 	
-	.rubik-iso-regular {
-  font-family: "Rubik Iso", system-ui;
-  font-size: 100pt;
-  font-style: normal;
-}
+	font-family: 'Raleway', sans-serif;
+	font-size: 80pt;
+	
 	text-align: center;
 	
 	user-select: none;
@@ -47,7 +45,7 @@ body {
     </style>
 </head>
 <body>
- <!-- Explanation in JS tab -->
+<!-- Explanation in JS tab -->
 
 <!-- The two texts -->
 <div id="container">
@@ -69,8 +67,7 @@ body {
 		</filter>
 	</defs>
 </svg>
-    <!-- JavaScript Goes Here -->
-    <script>
+
 /*
 	This pen cleverly utilizes SVG filters to create a "Morphing Text" effect. Essentially, it layers 2 text elements on top of each other, and blurs them depending on which text element should be more visible. Once the blurring is applied, both texts are fed through a threshold filter together, which produces the "gooey" effect. Check the CSS - Comment the #container rule's filter out to see how the blurring works!
 */
@@ -82,21 +79,17 @@ const elts = {
 
 // The strings to morph between. You can change these to anything you want!
 const texts = [
-	"Hi",
-	"my",
-	"name",
+	"Why",
 	"is",
-	"SLUTZ",
-	"and",
 	"this",
-	"website",
-	"is",
-	"under",
-	"construction!"
+	"so",
+	"satisfying",
+	"to",
+	"watch?"
 ];
 
 // Controls the speed of morphing.
-const morphTime = 0.75;
+const morphTime = 1;
 const cooldownTime = 0.25;
 
 let textIndex = texts.length - 1;
@@ -170,6 +163,43 @@ function animate() {
 
 // Start the animation.
 animate();
+    <script>
+/* Explanation in JS tab */
+
+/* Cool font from Google Fonts! */
+@import url('https://fonts.googleapis.com/css?family=Raleway:900&display=swap');
+
+body {
+	margin: 0px;
+}
+
+#container {
+	/* Center the text in the viewport. */
+	position: absolute;
+	margin: auto;
+	width: 100vw;
+	height: 80pt;
+	top: 0;
+	bottom: 0;
+	
+	/* This filter is a lot of the magic, try commenting it out to see how the morphing works! */
+	filter: url(#threshold) blur(0.6px);
+}
+
+/* Your average text styling */
+#text1, #text2 {
+	position: absolute;
+	width: 100%;
+	display: inline-block;
+	
+	font-family: 'Raleway', sans-serif;
+	font-size: 80pt;
+	
+	text-align: center;
+	
+	user-select: none;
+}
     </script>
 </body>
 </html>
+
