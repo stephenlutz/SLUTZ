@@ -1,95 +1,116 @@
-/*
-	This pen cleverly utilizes SVG filters to create a "Morphing Text" effect. Essentially, it layers 2 text elements on top of each other, and blurs them depending on which text element should be more visible. Once the blurring is applied, both texts are fed through a threshold filter together, which produces the "gooey" effect. Check the CSS - Comment the #container rule's filter out to see how the blurring works!
-*/
+import GUI from "https://cdn.jsdelivr.net/npm/lil-gui@0.18.2/+esm";
 
-const elts = {
-	text1: document.getElementById("text1"),
-	text2: document.getElementById("text2")
+const canvasEl = document.querySelector("canvas");
+const textureEl = document.createElement("canvas");
+const textureCtx = textureEl.getContext("2d");
+
+const fontOptions = {
+    "Arial": "Arial, sans-serif",
+    "Verdana": "Verdana, sans-serif",
+    "Tahoma": "Tahoma, sans-serif",
+    "Times New Roman": "Times New Roman, serif",
+    "Georgia": "Georgia, serif",
+    "Garamond": "Garamond, serif",
+    "Courier New": "Courier New, monospace",
+    "Brush Script MT": "Brush Script MT, cursive"
 };
 
-// The strings to morph between. You can change these to anything you want!
-const texts = [
-	"Why",
-	"is",
-	"this",
-	"so",
-	"satisfying",
-	"to",
-	"watch?"
-];
+const params = {
+    fontName: "Verdana",
+    isBold: false,
+    fontSize: 80,
+    text: "fluid",
+    pointerSize: null,
+    color: {r: 1., g: .0, b: .5}
+};
 
-// Controls the speed of morphing.
-const morphTime = 1;
-const cooldownTime = 0.25;
+const pointer = {
+    x: 0,
+    y: 0,
+    dx: 0,
+    dy: 0,
+    moved: false,
+};
 
-let textIndex = texts.length - 1;
-let time = new Date();
-let morph = 0;
-let cooldown = cooldownTime;
+let outputColor, velocity, divergence, pressure, canvasTexture;
+let isPreview = true;
 
-elts.text1.textContent = texts[textIndex % texts.length];
-elts.text2.textContent = texts[(textIndex + 1) % texts.length];
+const gl = canvasEl.getContext("webgl");
+gl.getExtension("OES_texture_float");
 
-function doMorph() {
-	morph -= cooldown;
-	cooldown = 0;
-	
-	let fraction = morph / morphTime;
-	
-	if (fraction > 1) {
-		cooldown = cooldownTime;
-		fraction = 1;
-	}
-	
-	setMorph(fraction);
+const vertexShader = createShader(
+    document.getElementById("vertShader").innerHTML,
+    gl.VERTEX_SHADER);
+
+const splatProgram = createProgram("fragShaderPoint");
+const divergenceProgram = createProgram("fragShaderDivergence");
+const pressureProgram = createProgram("fragShaderPressure");
+const gradientSubtractProgram = createProgram("fragShaderGradientSubtract");
+const advectionProgram = createProgram("fragShaderAdvection");
+const outputShaderProgram = createProgram("fragShaderOutputShader");
+
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    -1, -1,
+    -1, 1,
+    1, 1,
+    1, -1
+]), gl.STATIC_DRAW);
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW);
+gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(0);
+
+createTextCanvasTexture();
+initFBOs();
+createControls();
+setupEvents();
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+render();
+
+function createTextCanvasTexture() {
+    canvasTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, canvasTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
 
-// A lot of the magic happens here, this is what applies the blur filter to the text.
-function setMorph(fraction) {
-	// fraction = Math.cos(fraction * Math.PI) / -2 + .5;
-	
-	elts.text2.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-	elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
-	
-	fraction = 1 - fraction;
-	elts.text1.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-	elts.text1.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
-	
-	elts.text1.textContent = texts[textIndex % texts.length];
-	elts.text2.textContent = texts[(textIndex + 1) % texts.length];
+function updateTextCanvas() {
+    textureCtx.fillStyle = "black";
+    textureCtx.fillRect(0, 0, textureEl.width, textureEl.height);
+
+    textureCtx.font = (params.isBold ? "bold" : "normal") + " " + (params.fontSize * devicePixelRatio) + "px " + fontOptions[params.fontName];
+    textureCtx.fillStyle = "#ffffff";
+    textureCtx.textAlign = "center";
+
+    textureCtx.filter = "blur(3px)";
+
+    const textBox = textureCtx.measureText(params.text);
+    textureCtx.fillText(params.text, .5 * textureEl.width, .5 * textureEl.height + .5 * textBox.actualBoundingBoxAscent);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, canvasTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureEl);
 }
 
-function doCooldown() {
-	morph = 0;
-	
-	elts.text2.style.filter = "";
-	elts.text2.style.opacity = "100%";
-	
-	elts.text1.style.filter = "";
-	elts.text1.style.opacity = "0%";
+function createProgram(elId) {
+    const shader = createShader(
+        document.getElementById(elId).innerHTML,
+        gl.FRAGMENT_SHADER);
+    const program = createShaderProgram(vertexShader, shader);
+    const uniforms = getUniforms(program);
+    return {
+        program, uniforms
+    };
 }
 
-// Animation loop, which is called every frame.
-function animate() {
-	requestAnimationFrame(animate);
-	
-	let newTime = new Date();
-	let shouldIncrementIndex = cooldown > 0;
-	let dt = (newTime - time) / 1000;
-	time = newTime;
-	
-	cooldown -= dt;
-	
-	if (cooldown <= 0) {
-		if (shouldIncrementIndex) {
-			textIndex++;
-		}
-		
-		doMorph();
-	} else {
-		doCooldown();
-	}
-}
+// Shader and WebGL program setup functions continue here...
 
-// Start the animation.
-animate();
+function render(t) {
+    // Fluid simulation rendering loop
+    // Update velocity, pressure, and other simulation steps...
+}
