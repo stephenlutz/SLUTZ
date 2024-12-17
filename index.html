@@ -45,7 +45,7 @@ body {
     </style>
 </head>
 <body>
- <!-- Explanation in JS tab -->
+<!-- Explanation in JS tab -->
 
 <!-- The two texts -->
 <div id="container">
@@ -67,9 +67,10 @@ body {
 		</filter>
 	</defs>
 </svg>
+
     <!-- JavaScript Goes Here -->
     <script>
-/*
+   /*
 	This pen cleverly utilizes SVG filters to create a "Morphing Text" effect. Essentially, it layers 2 text elements on top of each other, and blurs them depending on which text element should be more visible. Once the blurring is applied, both texts are fed through a threshold filter together, which produces the "gooey" effect. Check the CSS - Comment the #container rule's filter out to see how the blurring works!
 */
 
@@ -80,17 +81,13 @@ const elts = {
 
 // The strings to morph between. You can change these to anything you want!
 const texts = [
-	"Hi",
-	"my",
-	"name",
+	"Why",
 	"is",
-	"SLUTZ",
-	"and",
 	"this",
-	"website",
-	"is",
-	"under",
-	"construction!"
+	"so",
+	"satisfying",
+	"to",
+	"watch?"
 ];
 
 // Controls the speed of morphing.
@@ -171,4 +168,3 @@ animate();
     </script>
 </body>
 </html>
-
