@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLUTZ</title>
+    <title>Your Page Title</title>
     
     <!-- CSS Goes Here -->
     <style>
-      /* Explanation in JS tab */
+/* Explanation in JS tab */
 
 /* Cool font from Google Fonts! */
 @import url('https://fonts.googleapis.com/css?family=Raleway:900&display=swap');
@@ -45,7 +45,7 @@ body {
     </style>
 </head>
 <body>
-<!-- Explanation in JS tab -->
+ <!-- Explanation in JS tab -->
 
 <!-- The two texts -->
 <div id="container">
@@ -67,7 +67,8 @@ body {
 		</filter>
 	</defs>
 </svg>
-
+    <!-- JavaScript Goes Here -->
+    <script>
 /*
 	This pen cleverly utilizes SVG filters to create a "Morphing Text" effect. Essentially, it layers 2 text elements on top of each other, and blurs them depending on which text element should be more visible. Once the blurring is applied, both texts are fed through a threshold filter together, which produces the "gooey" effect. Check the CSS - Comment the #container rule's filter out to see how the blurring works!
 */
@@ -79,13 +80,17 @@ const elts = {
 
 // The strings to morph between. You can change these to anything you want!
 const texts = [
-	"Why",
+	"Hi",
+	"my",
+	"name",
 	"is",
+	"SLUTZ",
+	"and",
 	"this",
-	"so",
-	"satisfying",
-	"to",
-	"watch?"
+	"website",
+	"is",
+	"under",
+	"construction!"
 ];
 
 // Controls the speed of morphing.
@@ -163,42 +168,6 @@ function animate() {
 
 // Start the animation.
 animate();
-    <script>
-/* Explanation in JS tab */
-
-/* Cool font from Google Fonts! */
-@import url('https://fonts.googleapis.com/css?family=Raleway:900&display=swap');
-
-body {
-	margin: 0px;
-}
-
-#container {
-	/* Center the text in the viewport. */
-	position: absolute;
-	margin: auto;
-	width: 100vw;
-	height: 80pt;
-	top: 0;
-	bottom: 0;
-	
-	/* This filter is a lot of the magic, try commenting it out to see how the morphing works! */
-	filter: url(#threshold) blur(0.6px);
-}
-
-/* Your average text styling */
-#text1, #text2 {
-	position: absolute;
-	width: 100%;
-	display: inline-block;
-	
-	font-family: 'Raleway', sans-serif;
-	font-size: 80pt;
-	
-	text-align: center;
-	
-	user-select: none;
-}
     </script>
 </body>
 </html>
