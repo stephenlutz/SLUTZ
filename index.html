@@ -579,6 +579,11 @@ function createControls() {
     gui
         .addColor(params, "color");
 }
+
+	    const gl = canvasEl.getContext("webgl");
+if (!gl) {
+    console.error("WebGL not supported. Please use a compatible browser.");
+}
     </script>
 </body>
 </html>
