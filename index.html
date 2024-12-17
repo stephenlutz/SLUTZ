@@ -1,33 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title> SLUTZ</title>
-  <link rel="stylesheet" href="./style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas with Shaders</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<!-- Explanation in JS tab -->
+    <canvas id="webglCanvas"></canvas>
 
-<!-- The two texts -->
-<div id="container">
-  <span id="text1"></span>
-  <span id="text2"></span>
-</div>
+    <script type="x-shader/x-vertex" id="vertShader">
+        precision highp float;
 
-<!-- The SVG filter used to create the merging effect -->
-<svg id="filters">
-  <defs>
-    <filter id="threshold">
-      <!-- Basically just a threshold effect - pixels with a high enough opacity are set to full opacity, and all other pixels are set to completely transparent. -->
-      <feColorMatrix in="SourceGraphic"
-        type="matrix"
-        values="1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 255 -140" />
-    </filter>
-  </defs>
-</svg>
-<script src="./script.js"></script>
+        varying vec2 vUv;
+        attribute vec2 a_position;
+
+        varying vec2 vL;
+        varying vec2 vR;
+        varying vec2 vT;
+        varying vec2 vB;
+        uniform vec2 u_texel;
+
+        void main () {
+            vUv = .5 * (a_position + 1.);
+            vL = vUv - vec2(u_texel.x, 0.);
+            vR = vUv + vec2(u_texel.x, 0.);
+            vT = vUv + vec2(0., u_texel.y);
+            vB = vUv - vec2(0., u_texel.y);
+            gl_Position = vec4(a_position, 0., 1.);
+        }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragShaderAdvection">
+        precision highp float;
+        precision highp sampler2D;
+
+        uniform sampler2D u_texture;
+        varying vec2 vUv;
+        varying vec2 vL;
+        varying vec2 vR;
+        varying vec2 vT;
+        varying vec2 vB;
+
+        void main() {
+            vec4 color = texture2D(u_texture, vUv);
+            vec4 left = texture2D(u_texture, vL);
+            vec4 right = texture2D(u_texture, vR);
+            vec4 top = texture2D(u_texture, vT);
+            vec4 bottom = texture2D(u_texture, vB);
+
+            // Example of advection effect using neighboring pixels
+            vec4 result = color + 0.25 * (left + right + top + bottom);
+            gl_FragColor = result;
+        }
+    </script>
+
+    <script>
+        // WebGL initialization and shader setup
+        const canvas = document.getElementById("webglCanvas");
+        const gl = canvas.getContext("webgl");
+
+        if (!gl) {
+            alert("WebGL not supported");
+        }
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Vertex and Fragment Shaders
+        const vertShader = document.getElementById("vertShader").textContent;
+        const fragShader = document.getElementById("fragShaderAdvection").textContent;
+
+        // Shader program creation
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, vertShader);
+        gl.compileShader(vertexShader);
+
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, fragShader);
+        gl.compileShader(fragmentShader);
+
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+
+        gl.useProgram(shaderProgram);
+
+        // Set up vertices and buffers for the full-screen quad
+        const vertices = new Float32Array([
+            -1.0, -1.0,
+            1.0, -1.0,
+            -1.0, 1.0,
+            -1.0, 1.0,
+            1.0, -1.0,
+            1.0, 1.0
+        ]);
+
+        const vertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        // Get attribute location and enable it
+        const aPosition = gl.getAttribLocation(shaderProgram, "a_position");
+        gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(aPosition);
+
+        // Get uniform locations
+        const uTexel = gl.getUniformLocation(shaderProgram, "u_texel");
+
+        // Set texel size (assuming texture is 1:1 ratio)
+        gl.uniform2f(uTexel, 1.0 / canvas.width, 1.0 / canvas.height);
+
+        // Render loop
+        function render() {
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Placeholder texture for now
+            // You can use an actual texture in place of this for the advection effect
+            const emptyTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, emptyTexture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            requestAnimationFrame(render);
+        }
+
+        render();
+    </script>
 </body>
 </html>
