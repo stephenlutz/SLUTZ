@@ -220,9 +220,11 @@ canvas {
 </script>
 
     <!-- JavaScript Goes Here -->
-    <script>
-	    <script type="module">
-import GUI from "https://cdn.jsdelivr.net/npm/lil-gui@0.18.2/+esm";
+	
+<script src="https://cdn.jsdelivr.net/npm/lil-gui@0.18.2/dist/lil-gui.umd.min.js"></script>
+<script>
+    const GUI = lil.GUI; // Make lil-gui accessible
+</script>
 
 const canvasEl = document.querySelector("canvas");
 const textureEl = document.createElement("canvas");
