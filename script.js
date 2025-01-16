@@ -1,66 +1,75 @@
-// Smooth scroll for navigation links
-document.querySelectorAll('nav ul li a').forEach(link => {
-    link.addEventListener('click', function (e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href').substring(1);
-        const targetSection = document.getElementById(targetId);
 
-        window.scrollTo({
-            top: targetSection.offsetTop,
-            behavior: 'smooth'
-        });
-    });
-});
+gsap.registerPlugin(CustomEase);
 
+gsap.set(".nav",{display:"none"})
 
-// Theme toggle button
-const themeToggle = document.getElementById('theme-toggle');
+CustomEase.create( "main", "0.65, 0.01, 0.05, 0.99" );
 
-// Check user's saved theme in localStorage
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-    document.body.classList.add(savedTheme);
-    themeToggle.textContent = savedTheme === 'dark-mode' ? '☀️' : '🌙';
-}
+gsap.defaults({
+  ease:"main",
+  duration:0.7
+})
+  
+function initMenu(){
+  let navWrap = document.querySelector(".nav")
+  let state = navWrap.getAttribute("data-nav")
+  let overlay = navWrap.querySelector(".overlay")
+  let menu = navWrap.querySelector(".menu")
+  let bgPanels = navWrap.querySelectorAll(".bg-panel")
+  let menuToggles = document.querySelectorAll("[data-menu-toggle]")
+  let menuLinks = navWrap.querySelectorAll(".menu-link")
+  let fadeTargets = navWrap.querySelectorAll("[data-menu-fade]")
+  let menuButton = document.querySelector(".menu-button")
+  let menuButtonTexts = menuButton.querySelectorAll("p")
+  let menuButtonIcon = menuButton.querySelector(".menu-button-icon")
 
-// Add event listener to toggle button
-themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
+  let tl = gsap.timeline()
+  
+  const openNav = () =>{
+    navWrap.setAttribute("data-nav", "open")
     
-    // Update the button text
-    if (document.body.classList.contains('dark-mode')) {
-        themeToggle.textContent = '☀️'; // Light mode icon
-        localStorage.setItem('theme', 'dark-mode');
-    } else {
-        themeToggle.textContent = '🌙'; // Dark mode icon
-        localStorage.setItem('theme', '');
+    tl.clear()
+    .set(navWrap,{display:"block"})
+    .set(menu,{xPercent:0},"<")
+    .fromTo(menuButtonTexts,{yPercent:0},{yPercent:-100,stagger:0.2})
+    .fromTo(menuButtonIcon,{rotate:0},{rotate:315},"<")
+    .fromTo(overlay,{autoAlpha:0},{autoAlpha:1},"<")
+    .fromTo(bgPanels,{xPercent:101},{xPercent:0,stagger:0.12,duration: 0.575},"<")
+    .fromTo(menuLinks,{yPercent:140,rotate:10},{yPercent:0, rotate:0,stagger:0.05},"<+=0.35")
+    .fromTo(fadeTargets,{autoAlpha:0,yPercent:50},{autoAlpha:1, yPercent:0,stagger:0.04},"<+=0.2")
+  }
+  
+  const closeNav = () =>{
+    navWrap.setAttribute("data-nav", "closed")
+    
+    tl.clear()
+    .to(overlay,{autoAlpha:0})
+    .to(menu,{xPercent:120},"<")
+    .to(menuButtonTexts,{yPercent:0},"<")
+    .to(menuButtonIcon,{rotate:0},"<")
+    .set(navWrap,{display:"none"})
+  }  
+  
+  // Toggle menu open / close depending on its current state
+  menuToggles.forEach((toggle) => {
+    toggle.addEventListener("click", () => {
+      state = navWrap.getAttribute("data-nav");
+      if (state === "open") {
+        closeNav();
+      } else {
+        openNav();
+      }
+    });    
+  });
+  
+  // If menu is open, you can close it using the "escape" key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && navWrap.getAttribute("data-nav") === "open") {
+      closeNav();
     }
-});
-
-
-// Highlight active navigation link
-window.addEventListener('scroll', () => {
-    const sections = document.querySelectorAll('section');
-    const navLinks = document.querySelectorAll('nav ul li a');
-    let currentSection = '';
-
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        if (pageYOffset >= sectionTop - 50) {
-            currentSection = section.getAttribute('id');
-        }
-    });
-
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href').substring(1) === currentSection) {
-            link.classList.add('active');
-        }
-    });
-});
-
-
-nav ul li a.active {
-    font-weight: bold;
-    color: #00bcd4;
+  });
 }
+
+document.addEventListener("DOMContentLoaded",()=>{
+  initMenu()
+})
