@@ -12,6 +12,32 @@ document.querySelectorAll('nav ul li a').forEach(link => {
     });
 });
 
+
+// Theme toggle button
+const themeToggle = document.getElementById('theme-toggle');
+
+// Check user's saved theme in localStorage
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+    document.body.classList.add(savedTheme);
+    themeToggle.textContent = savedTheme === 'dark-mode' ? '☀️' : '🌙';
+}
+
+// Add event listener to toggle button
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    
+    // Update the button text
+    if (document.body.classList.contains('dark-mode')) {
+        themeToggle.textContent = '☀️'; // Light mode icon
+        localStorage.setItem('theme', 'dark-mode');
+    } else {
+        themeToggle.textContent = '🌙'; // Dark mode icon
+        localStorage.setItem('theme', '');
+    }
+});
+
+
 // Highlight active navigation link
 window.addEventListener('scroll', () => {
     const sections = document.querySelectorAll('section');
