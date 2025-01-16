@@ -46,3 +46,38 @@ footer {
 .project {
     margin-bottom: 2rem;
 }
+
+/* Default light mode styles */
+body {
+    background-color: #f4f4f4;
+    color: #333;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: #333;
+    color: #f4f4f4;
+}
+
+/* Header styles */
+header {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+button#theme-toggle {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #555;
+    color: #fff;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+button#theme-toggle:hover {
+    background-color: #777;
+}
